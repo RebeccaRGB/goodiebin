@@ -8,6 +8,7 @@ function die {
 	exit
 }
 
+mkdir -p /usr/local/bin/ 2> /dev/null || die
 install approximate.py || die
 install bci.py || die
 install bcr.py || die
