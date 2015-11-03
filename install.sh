@@ -13,6 +13,7 @@ install approximate.py || die
 install bci.py || die
 install bcr.py || die
 install canonicalize.sh || die
+install chargen.py || die
 install dechex.sh || die
 install factor.py || die
 install harden.sh || die
