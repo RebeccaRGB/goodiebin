@@ -5,15 +5,18 @@ from sys import exit
 from sys import stdout
 
 def chargen(s, e, rm, cm, o, rc, cc, rd, cd):
-	r = 0
-	while r < rc or rc < 1:
-		c = 0
-		while c < cc or cc < 1:
-			if c != 0: stdout.write(cd.encode('utf-8'))
-			stdout.write(unichr( (rm * r + cm * c + o) % (e - s) + s ).encode('utf-8'))
-			c += 1
-		stdout.write(rd.encode('utf-8'))
-		r += 1
+	try:
+		r = 0
+		while r < rc or rc < 1:
+			c = 0
+			while c < cc or cc < 1:
+				if c != 0: stdout.write(cd.encode('utf-8'))
+				stdout.write(unichr( (rm * r + cm * c + o) % (e - s) + s ).encode('utf-8'))
+				c += 1
+			stdout.write(rd.encode('utf-8'))
+			r += 1
+	except:
+		pass
 
 def parseord(s):
 	try:
