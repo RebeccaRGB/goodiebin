@@ -18,7 +18,7 @@ def help():
 	print "   -r          enable RTS/CTS"
 	print "   -h          enable DSR/DTR"
 	print "   -o <path>   path to write to"
-	print "   -w <num>    delay before writing (seconds)"
+	print "   -w <num>    delay before reading (seconds)"
 	print "   -l <int>    number of bytes to read"
 
 def main():

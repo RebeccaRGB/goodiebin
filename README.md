@@ -148,7 +148,7 @@ Recursively clears the user immutable flag (also known as the "locked" property 
 
 ## `sread`
 
-Reads from a serial port and writes to stdout or a file.
+Reads from a serial port and writes to stdout or a file. (Requires pySerial.)
 
     $ sread -u /dev/tty.usbmodemfa131 -b 9600 -d 8 -p none -s 1 -r -o output.txt -w 1
     $ sread --help
@@ -163,12 +163,12 @@ Reads from a serial port and writes to stdout or a file.
        -r          enable RTS/CTS
        -h          enable DSR/DTR
        -o <path>   path to write to
-       -w <num>    delay before writing (seconds)
+       -w <num>    delay before reading (seconds)
        -l <int>    number of bytes to read
 
 ## `swrite`
 
-Reads from stdin or a file and writes to a serial port.
+Reads from stdin or a file and writes to a serial port. (Requires pySerial.)
 
     $ swrite -u /dev/tty.usbmodemfa131 -b 9600 -d 8 -p none -s 1 -r -i input.txt -w 10
     $ swrite --help
