@@ -145,3 +145,43 @@ Calculates and divides out the largest common factor / greatest common divisor f
 ## `soften`
 
 Recursively clears the user immutable flag (also known as the "locked" property of a file under Mac OS X). A partial reversal of `harden`.
+
+## `sread`
+
+Reads from a serial port and writes to stdout or a file.
+
+    $ sread -u /dev/tty.usbmodemfa131 -b 9600 -d 8 -p none -s 1 -r -o output.txt -w 1
+    $ sread --help
+    usage: sread [<options>] <device> [<output>]
+       -u <path>   serial device to read from
+       -b <int>    baud rate
+       -d <int>    data bits (5, 6, 7, 8)
+       -p <str>    parity (none, even, odd, mark, space)
+       -s <num>    stop bits (1, 1.5, 2)
+       -t <num>    timeout (seconds)
+       -x          enable XON/XOFF
+       -r          enable RTS/CTS
+       -h          enable DSR/DTR
+       -o <path>   path to write to
+       -w <num>    delay before writing (seconds)
+       -l <int>    number of bytes to read
+
+## `swrite`
+
+Reads from stdin or a file and writes to a serial port.
+
+    $ swrite -u /dev/tty.usbmodemfa131 -b 9600 -d 8 -p none -s 1 -r -i input.txt -w 10
+    $ swrite --help
+    usage: swrite [<options>] <device> [<input>]
+       -u <path>   serial device to write to
+       -b <int>    baud rate
+       -d <int>    data bits (5, 6, 7, 8)
+       -p <str>    parity (none, even, odd, mark, space)
+       -s <num>    stop bits (1, 1.5, 2)
+       -t <num>    timeout (seconds)
+       -x          enable XON/XOFF
+       -r          enable RTS/CTS
+       -h          enable DSR/DTR
+       -i <path>   path to read from
+       -w <num>    delay before writing (seconds)
+       -l <int>    number of bytes to write

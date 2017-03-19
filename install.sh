@@ -20,3 +20,5 @@ install harden.sh || die
 install hexdec.sh || die
 install simplify.py || die
 install soften.sh || die
+install sread.py || die
+install swrite.py || die
