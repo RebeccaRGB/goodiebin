@@ -151,7 +151,7 @@ def main():
 						ser.write(b)
 						i += len(b)
 			else:
-				with open(input, "r") as f:
+				with open(input, "rb") as f:
 					with serial.Serial(port=port, baudrate=baudrate, bytesize=bytesize,
 									   parity=parity, stopbits=stopbits, timeout=timeout,
 									   xonxoff=xonxoff, rtscts=rtscts, dsrdtr=dsrdtr) as ser:
