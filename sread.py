@@ -1,25 +1,27 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import serial
 import time
 from sys import argv
 from sys import exit
+from sys import stderr
 from sys import stdout
 
 def help():
-	print "usage: sread [<options>] <device> [<output>]"
-	print "   -u <path>   serial device to read from"
-	print "   -b <int>    baud rate"
-	print "   -d <int>    data bits (5, 6, 7, 8)"
-	print "   -p <str>    parity (none, even, odd, mark, space)"
-	print "   -s <num>    stop bits (1, 1.5, 2)"
-	print "   -t <num>    timeout (seconds)"
-	print "   -x          enable XON/XOFF"
-	print "   -r          enable RTS/CTS"
-	print "   -h          enable DSR/DTR"
-	print "   -o <path>   path to write to"
-	print "   -w <num>    delay before reading (seconds)"
-	print "   -l <int>    number of bytes to read"
+	print("usage: sread [<options>] <device> [<output>]", file=stderr)
+	print("   -u <path>   serial device to read from", file=stderr)
+	print("   -b <int>    baud rate", file=stderr)
+	print("   -d <int>    data bits (5, 6, 7, 8)", file=stderr)
+	print("   -p <str>    parity (none, even, odd, mark, space)", file=stderr)
+	print("   -s <num>    stop bits (1, 1.5, 2)", file=stderr)
+	print("   -t <num>    timeout (seconds)", file=stderr)
+	print("   -x          enable XON/XOFF", file=stderr)
+	print("   -r          enable RTS/CTS", file=stderr)
+	print("   -h          enable DSR/DTR", file=stderr)
+	print("   -o <path>   path to write to", file=stderr)
+	print("   -w <num>    delay before reading (seconds)", file=stderr)
+	print("   -l <int>    number of bytes to read", file=stderr)
 
 def main():
 	port = None
@@ -48,7 +50,7 @@ def main():
 			try:
 				baudrate = int(argv[i])
 			except:
-				print argv[i] + " is not valid for -b"
+				print(argv[i] + " is not valid for -b", file=stderr)
 				exit()
 			i += 1
 		elif arg == "-d" and i < len(argv):
@@ -61,7 +63,7 @@ def main():
 			elif argv[i] == "8":
 				bytesize = serial.EIGHTBITS
 			else:
-				print argv[i] + " is not valid for -d"
+				print(argv[i] + " is not valid for -d", file=stderr)
 				exit()
 			i += 1
 		elif arg == "-p" and i < len(argv):
@@ -76,7 +78,7 @@ def main():
 			elif argv[i] == "S" or argv[i] == "s" or argv[i] == "space":
 				parity = serial.PARITY_SPACE
 			else:
-				print argv[i] + " is not valid for -p"
+				print(argv[i] + " is not valid for -p", file=stderr)
 				exit()
 			i += 1
 		elif arg == "-s" and i < len(argv):
@@ -87,14 +89,14 @@ def main():
 			elif argv[i] == "2":
 				stopbits = serial.STOPBITS_TWO
 			else:
-				print argv[i] + " is not valid for -s"
+				print(argv[i] + " is not valid for -s", file=stderr)
 				exit()
 			i += 1
 		elif arg == "-t" and i < len(argv):
 			try:
 				timeout = float(argv[i])
 			except:
-				print argv[i] + " is not valid for -t"
+				print(argv[i] + " is not valid for -t", file=stderr)
 				exit()
 			i += 1
 		elif arg == "-x":
@@ -116,14 +118,14 @@ def main():
 			try:
 				delay = float(argv[i])
 			except:
-				print argv[i] + " is not valid for -w"
+				print(argv[i] + " is not valid for -w", file=stderr)
 				exit()
 			i += 1
 		elif arg == "-l" and i < len(argv):
 			try:
 				length = int(argv[i])
 			except:
-				print argv[i] + " is not valid for -l"
+				print(argv[i] + " is not valid for -l", file=stderr)
 				exit()
 			i += 1
 		elif port is None:
