@@ -18,6 +18,7 @@ install dechex.sh || die
 install factor.py || die
 install harden.sh || die
 install hexdec.sh || die
+install scon.py || die
 install simplify.py || die
 install soften.sh || die
 install sread.py || die

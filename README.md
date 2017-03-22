@@ -131,6 +131,27 @@ An alias for `bci 16 10`.
     255
     65535
 
+## `scon`
+
+Connects to a serial port and continually sends stdin to serial input and prints serial output to stdout. (Requires pySerial.)
+
+    $ scon /dev/tty.usbmodemfd121 -b 9600 -d 8 -p none -s 1 -r -w 1
+    !Hello
+    Hello
+    ^C
+    $ scon --help
+    usage: scon [<options>] <device>
+       -u <path>   serial device to read from and write to
+       -b <int>    baud rate
+       -d <int>    data bits (5, 6, 7, 8)
+       -p <str>    parity (none, even, odd, mark, space)
+       -s <num>    stop bits (1, 1.5, 2)
+       -t <num>    timeout (seconds)
+       -x          enable XON/XOFF
+       -r          enable RTS/CTS
+       -h          enable DSR/DTR
+       -w <num>    delay before reading or writing (seconds)
+
 ## `simplify`
 
 Calculates and divides out the largest common factor / greatest common divisor from a list of integers.
