@@ -15,6 +15,7 @@ install bcr.py || die
 install canonicalize.sh || die
 install chargen.py || die
 install dechex.sh || die
+install erdrcr.py || die
 install factor.py || die
 install harden.sh || die
 install hexdec.sh || die

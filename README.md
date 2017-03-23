@@ -100,6 +100,41 @@ An alias for `bci 10 16`.
     FF
     FFFF
 
+## `erdrcr`
+
+ErroR DetectoR and CorrectoR. Compares multiple binary files for bit-for-bit equality. Reports which bits differ and how much of the files differ. Can also output an error-corrected binary file.
+
+    $ erdrcr 1.bin 2.bin 3.bin
+    Address.Mask	0's	1's	Correction
+    00000015.02:	2	1	0
+    0000001C.08:	1	2	1
+    2 out of 320 bits mismatched (0.625% error rate)
+    all errors correctable
+    $ erdrcr 1.bin 2.bin 3.bin -o 4.bin
+    Address.Mask	0's	1's	Correction
+    00000015.02:	2	1	0
+    0000001C.08:	1	2	1
+    2 out of 320 bits mismatched (0.625% error rate)
+    all errors correctable
+    $ erdrcr 1.bin 4.bin
+    no differences found
+    $ erdrcr 1.bin trunc.bin 
+    Address.Mask	0's	1's	Correction
+    00000024.20:	1	1	?
+    00000024.10:	1	1	?
+    00000024.02:	1	1	?
+    00000025.20:	1	1	?
+    00000025.10:	1	1	?
+    00000025.04:	1	1	?
+    00000026.20:	1	1	?
+    00000026.10:	1	1	?
+    00000026.02:	1	1	?
+    00000026.01:	1	1	?
+    00000027.20:	1	1	?
+    00000027.02:	1	1	?
+    12 out of 320 bits mismatched (3.75% error rate)
+    12 out of 320 bits unrecoverable (3.75% error rate)
+
 ## `factor`
 
 Calculates the prime factorization of an integer and its divisors, and other related properties.
