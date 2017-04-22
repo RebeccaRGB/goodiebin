@@ -3,6 +3,9 @@ function install {
 	cp "$1" "/usr/local/bin/${1%.*}" 2> /dev/null
 	chmod a+rx "/usr/local/bin/${1%.*}" 2> /dev/null
 }
+function compile {
+	gcc -o "/usr/local/bin/${1%.*}" "$1" 2> /dev/null
+}
 function die {
 	echo "This script must be run as root."
 	exit
@@ -15,7 +18,7 @@ install bcr.py || die
 install canonicalize.sh || die
 install chargen.py || die
 install dechex.sh || die
-install erdrcr.py || die
+compile erdrcr.c || die
 install factor.py || die
 install harden.sh || die
 install hexdec.sh || die
