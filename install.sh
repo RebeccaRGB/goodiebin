@@ -15,6 +15,7 @@ mkdir -p /usr/local/bin/ 2> /dev/null || die
 install approximate.py || die
 install bci.py || die
 install bcr.py || die
+install bec.py || die
 install canonicalize.sh || die
 install chargen.py || die
 install dechex.sh || die
