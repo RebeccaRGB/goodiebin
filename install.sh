@@ -27,4 +27,5 @@ install scon.py || die
 install simplify.py || die
 install soften.sh || die
 install sread.py || die
+install ssff.py || die
 install swrite.py || die

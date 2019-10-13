@@ -222,6 +222,40 @@ Reads from a serial port and writes to stdout or a file. (Requires pySerial.)
        -w <num>    delay before reading (seconds)
        -l <int>    number of bytes to read
 
+## `ssff`
+
+Extracts file paths from svn status lines with the specified statuses. Statuses may be specified in either uppercase or lowercase. `' '`, `'?'`, `'!'`, `'~'` may be specified as `'S'`, `'Q'`, `'E'`, `'T'`, respectively. `'Z'` specifies all possible statuses.
+
+    $ svn status
+    A       added/file
+    D       deleted/file
+    M       modified/file
+    ?       unversioned/file
+    !       missing/file
+    $ svn status | ssff m
+    modified/file
+    $ svn status | ssff ad
+    added/file
+    deleted/file
+    $ svn status | ssff \?
+    unversioned/file
+    $ svn status | ssff q
+    unversioned/file
+    $ svn status | ssff \!
+    missing/file
+    $ svn status | ssff e
+    missing/file
+    $ svn status | ssff z
+    added/file
+    deleted/file
+    modified/file
+    unversioned/file
+    missing/file
+    $ svn add `svn st | ssff q`
+    A         unversioned/file
+    $ svn revert `svn st | ssff m`
+    Reverted 'modified/file'
+
 ## `swrite`
 
 Reads from stdin or a file and writes to a serial port. (Requires pySerial.)
