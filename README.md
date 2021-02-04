@@ -251,10 +251,24 @@ Extracts file paths from svn status lines with the specified statuses. Statuses 
     modified/file
     unversioned/file
     missing/file
-    $ svn add `svn st | ssff q`
+    $ svn diff `svn st | ssff m` # diff modified files, but not added or deleted files
+    --- modified/file       (revision 123)
+    +++ modified/file       (working copy)
+    @@ -1,3 +1,3 @@
+     unmodified line
+    -removed line
+    +added line
+     unmodified line
+    $ svn add `svn st | ssff q` # add all unversioned files
     A         unversioned/file
-    $ svn revert `svn st | ssff m`
+    $ svn revert `svn st | ssff m` # revert all modified files
     Reverted 'modified/file'
+    $ svn revert `svn st | ssff e` # restore all missing files
+    Reverted 'missing/file'
+    $ svn status
+    A       added/file
+    D       deleted/file
+    A       unversioned/file
 
 ## `swrite`
 
