@@ -41,6 +41,33 @@ Like `bci`, only working on real numbers. (This may be less precise than `bci` f
     $ bcr 16 10 3.243F6A8822E88
     3.1415926535000000541231202078051865100860595703125
 
+## `bec`
+
+A calculator with an extensive set of functions and operations. Much easier to use than `bc`.
+
+    $ bec 2 + 2
+    4
+    $ bec 0xFF + 25
+    0x118
+    $ bec 42*0x42
+    2772
+    $ bec [sqrt[2]^sqrt[2]]^sqrt[2]
+    2.0
+    $ bec hypot[3,4]
+    5.0
+    $ bec toDeg[atan2[2,1]]
+    63.4349488229
+    $ bec 1/[1/1+1/2+1/3+1/6]
+    0.5
+    $ bec rsr[1,2,3,6]  #  reciprocal of sum of reciprocals - equivalent to above
+    0.5
+    $ bec fact 4
+    24.0
+    $ bec avg[6,9,12,17]
+    11.0
+    $ bec 0b11001100 :x 0b01010101  #  bitwise xor
+    0b10011001
+
 ## `canonicalize`
 
 Prints the canonical file path for every file path given as an argument. Removes symlinks and redundant dots and slashes from the directory path.
@@ -289,3 +316,32 @@ Reads from stdin or a file and writes to a serial port. (Requires pySerial.)
        -i <path>   path to read from
        -w <num>    delay before writing (seconds)
        -l <int>    number of bytes to write
+
+## `truthtable`
+
+Generates truth tables for boolean expressions.
+
+    $ truthtable a and b
+    a       b       |       a and b
+    0       0       |       0
+    0       1       |       0
+    1       0       |       0
+    1       1       |       1
+    $ truthtable 'X := A&C&D | B&D | ~B&C&~D; Y := A&D | B&C | ~B&D'
+    A       B       C       D       |       X       Y
+    0       0       0       0       |       0       0
+    0       0       0       1       |       0       1
+    0       0       1       0       |       1       0
+    0       0       1       1       |       0       1
+    0       1       0       0       |       0       0
+    0       1       0       1       |       1       0
+    0       1       1       0       |       0       1
+    0       1       1       1       |       1       1
+    1       0       0       0       |       0       0
+    1       0       0       1       |       0       1
+    1       0       1       0       |       1       0
+    1       0       1       1       |       1       1
+    1       1       0       0       |       0       0
+    1       1       0       1       |       1       1
+    1       1       1       0       |       0       1
+    1       1       1       1       |       1       1

@@ -29,3 +29,4 @@ install soften.sh || die
 install sread.py || die
 install ssff.py || die
 install swrite.py || die
+install truthtable.py || die
