@@ -185,6 +185,9 @@ ops.sort(key=len, reverse=True)
 
 
 consts = {
+	'NONE': None,
+	'None': None,
+	'none': None,
 	'0': False,
 	'⊥': False,
 	'FALSE': False,
@@ -297,10 +300,18 @@ class parser:
 
 
 
+def ttstr(v):
+	if v is None: return '-'
+	if v is False: return '0'
+	if v is True: return '1'
+	return str(v)
+
+
+
 def tt_toString(e):
 	def tt_toString2(e):
 		if e['type'] == 'value':
-			return (('1' if e['value'] else '0'), 0)
+			return (ttstr(e['value']), 0)
 
 		if e['type'] == 'id':
 			return (e['image'], 0)
@@ -376,6 +387,7 @@ def tt_eval(bindings, e):
 
 	if e['type'] == 'unary':
 		a = tt_eval(bindings, e['a'])
+		if a is None: return None
 		if e['op'] == 'not': return not a
 		if e['op'] == 'buf': return not not a
 		raise ValueError('Undefined operator: ' + e['op'])
@@ -391,6 +403,7 @@ def tt_eval(bindings, e):
 				raise ValueError('Invalid lvalue: ' + tt_toString(e['a']))
 		a = tt_eval(bindings, e['a'])
 		b = tt_eval(bindings, e['b'])
+		if a is None or b is None: return None
 		if e['op'] == 'and': return a and b
 		if e['op'] == 'nand': return not (a and b)
 		if e['op'] == 'xor': return (not a) != (not b)
@@ -443,20 +456,54 @@ def tt(s):
 
 
 
-def tt_print(s):
-	def ttstr(v):
-		if v is False: return '0'
-		if v is True: return '1'
-		return str(v)
-
+def tt_print(table):
 	try:
-		for inputs, outputs, exprs in tt(s):
-			inputs = '\t'.join(ttstr(x) for x in inputs)
-			outputs = '\t'.join(ttstr(x) for x in outputs)
-			exprs = '\t'.join(ttstr(x) for x in exprs)
-			print('\t|\t'.join(x for x in (inputs, outputs, exprs) if x))
+		isHeader = True
+		inputs, outputs, exprs = [], [], []
+		minTerms, maxTerms, dontCares = {}, {}, {}
+		valuesByOutput = {}
+
+		for inputValues, outputValues, exprValues in table:
+			if isHeader:
+				isHeader = False
+				inputs = inputValues
+				outputs = outputValues
+				exprs = exprValues
+				for k in outputs + exprs:
+					minTerms[k] = set()
+					maxTerms[k] = set()
+					dontCares[k] = set()
+					valuesByOutput[k] = {}
+			elif inputs:
+				index = int(''.join('1' if x else '0' for x in inputValues), 2)
+				for i in range(len(outputValues)):
+					valuesByOutput[outputs[i]][index] = outputValues[i]
+					if outputValues[i] is None: dontCares[outputs[i]].add(index)
+					if outputValues[i] is False: maxTerms[outputs[i]].add(index)
+					if outputValues[i] is True: minTerms[outputs[i]].add(index)
+				for i in range(len(exprValues)):
+					valuesByOutput[exprs[i]][index] = exprValues[i]
+					if exprValues[i] is None: dontCares[exprs[i]].add(index)
+					if exprValues[i] is False: maxTerms[exprs[i]].add(index)
+					if exprValues[i] is True: minTerms[exprs[i]].add(index)
+			instr = '\t'.join(ttstr(x) for x in inputValues)
+			outstr = '\t'.join(ttstr(x) for x in outputValues)
+			exprstr = '\t'.join(ttstr(x) for x in exprValues)
+			print('\t|\t'.join(x for x in (instr, outstr, exprstr) if x))
+
+		if inputs:
+			for k in outputs + exprs:
+				print('')
+				print('Output:\t' + k)
+				print('Values:\t' + ''.join(ttstr(valuesByOutput[k][i]) for i in sorted(valuesByOutput[k])))
+				print('Minterms:\t' + ', '.join(str(i) for i in sorted(minTerms[k])))
+				print('Maxterms:\t' + ', '.join(str(i) for i in sorted(maxTerms[k])))
+				print('Ignored:\t' + ', '.join(str(i) for i in sorted(dontCares[k])))
+
 	except Exception as e:
 		print(e)
+
+
 
 def tt_repl():
 	while True:
@@ -466,7 +513,7 @@ def tt_repl():
 			if s == 'bye' or s == 'exit' or s == 'quit':
 				return
 			elif s:
-				tt_print(s)
+				tt_print(tt(s))
 		except:
 			return
 
@@ -506,6 +553,8 @@ def tt_main(args):
 	if n == 0:
 		tt_help()
 		return
+
+	first = True
 	i = 0
 	while i < n:
 		arg = args[i]
@@ -514,7 +563,9 @@ def tt_main(args):
 			tt_help()
 		elif arg == '-e':
 			if i < n:
-				tt_print(args[i])
+				if not first: print('')
+				tt_print(tt(args[i]))
+				first = False
 				i += 1
 		elif arg == '-f':
 			if i < n:
@@ -522,7 +573,9 @@ def tt_main(args):
 					for line in f:
 						line = line.strip()
 						if line:
-							tt_print(line)
+							if not first: print('')
+							tt_print(tt(line))
+							first = False
 				i += 1
 		elif arg == '-i':
 			tt_repl()
@@ -530,10 +583,14 @@ def tt_main(args):
 			for line in sys.stdin:
 				line = line.strip()
 				if line:
-					tt_print(line)
+					if not first: print('')
+					tt_print(tt(line))
+					first = False
 		else:
 			line = ' '.join(args[i-1:]).strip()
-			tt_print(line)
+			if not first: print('')
+			tt_print(tt(line))
+			first = False
 			return
 
 if __name__ == '__main__':
