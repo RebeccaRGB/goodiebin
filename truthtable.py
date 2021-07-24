@@ -202,6 +202,137 @@ consts = {
 
 
 
+def ttstr(v):
+	if v is None: return '-'
+	if v is False: return '0'
+	if v is True: return '1'
+	return str(v)
+
+def column_address(i):
+	a = chr(65 + (i % 26))
+	i /= 26
+	while i:
+		i -= 1
+		a = chr(65 + (i % 26)) + a
+		i /= 26
+	return a
+
+def parse_inputs(s):
+	inputs = [x.strip() for x in s.split(',')]
+	for i in range(len(inputs)):
+		if not inputs[i]:
+			inputs[i] = column_address(i)
+	return inputs
+
+def parse_outputs(s):
+	def po_val(v):
+		if v in '1HTYhty⊤': return True
+		if v in '0FLNfln⊥': return False
+		return None
+	return [po_val(x) for x in s if x in '-01FHLNTUWXYZfhlntuwxyz⊤⊥']
+
+def parse_minMax(e):
+	groups = [x.strip() for x in e['args'].split(';') if x.strip()]
+
+	if len(groups) == 1:
+		try:
+			terms = [int(x.strip()) for x in groups[0].split(',')]
+			count = len(bin(max(abs(x) for x in terms))) - 2
+			inputs = [column_address(i) for i in range(count)]
+			e['inputs'], e['aterms'], e['bterms'] = inputs, terms, []
+			e['args'] = ', '.join(str(x) for x in terms)
+			return e
+		except:
+			raise ValueError('Illegal argument to function ' + e['func'])
+
+	if len(groups) == 2:
+		try:
+			aterms = [int(x.strip()) for x in groups[0].split(',')]
+			bterms = [int(x.strip()) for x in groups[1].split(',')]
+			count = len(bin(max(abs(x) for x in aterms + bterms))) - 2
+			inputs = [column_address(i) for i in range(count)]
+			e['inputs'], e['aterms'], e['bterms'] = inputs, aterms, bterms
+			e['args'] = '; '.join(', '.join(str(x) for x in y) for y in (aterms, bterms))
+			return e
+		except:
+			pass
+		try:
+			inputs = parse_inputs(groups[0])
+			terms = [int(x.strip()) for x in groups[1].split(',')]
+			e['inputs'], e['aterms'], e['bterms'] = inputs, terms, []
+			e['args'] = '; '.join(', '.join(str(x) for x in y) for y in (inputs, terms))
+			return e
+		except:
+			raise ValueError('Illegal argument to function ' + e['func'])
+
+	if len(groups) == 3:
+		try:
+			inputs = parse_inputs(groups[0])
+			aterms = [int(x.strip()) for x in groups[1].split(',')]
+			bterms = [int(x.strip()) for x in groups[2].split(',')]
+			e['inputs'], e['aterms'], e['bterms'] = inputs, aterms, bterms
+			e['args'] = '; '.join(', '.join(str(x) for x in y) for y in (inputs, aterms, bterms))
+			return e
+		except:
+			raise ValueError('Illegal argument to function ' + e['func'])
+
+	raise ValueError('Function ' + e['func'] + ' requires 1, 2, or 3 arguments, ' + str(len(groups)) + ' given')
+
+def eval_minTerms(e, inputValues):
+	index = int(''.join('1' if x else '0' for x in inputValues), 2)
+	if index in e['aterms']: return True
+	if index in e['bterms']: return None
+	return False
+
+def eval_maxTerms(e, inputValues):
+	index = int(''.join('1' if x else '0' for x in inputValues), 2)
+	if index in e['aterms']: return False
+	if index in e['bterms']: return None
+	return True
+
+def eval_minMax(e, inputValues):
+	index = int(''.join('1' if x else '0' for x in inputValues), 2)
+	if index in e['aterms']: return True
+	if index in e['bterms']: return False
+	return None
+
+def parse_valuesfn(e):
+	groups = [x.strip() for x in e['args'].split(';') if x.strip()]
+
+	if len(groups) == 1:
+		values = parse_outputs(groups[0])
+		count = len(bin(abs(len(values) - 1))) - 2
+		inputs = [column_address(i) for i in range(count)]
+		e['inputs'], e['values'] = inputs, values
+		e['args'] = ''.join(ttstr(x) for x in values)
+		return e
+
+	if len(groups) == 2:
+		inputs = parse_inputs(groups[0])
+		values = parse_outputs(groups[1])
+		e['inputs'], e['values'] = inputs, values
+		e['args'] = ', '.join(inputs) + '; ' + ''.join(ttstr(x) for x in values)
+		return e
+
+	raise ValueError('Function ' + e['func'] + ' requires 1 or 2 arguments, ' + str(len(groups)) + ' given')
+
+def eval_valuesfn(e, inputValues):
+	index = int(''.join('1' if x else '0' for x in inputValues), 2)
+	if index < len(e['values']): return e['values'][index]
+	return None
+
+funcs = {
+	'minterms': (parse_minMax, eval_minTerms),
+	'minTerms': (parse_minMax, eval_minTerms),
+	'maxterms': (parse_minMax, eval_maxTerms),
+	'maxTerms': (parse_minMax, eval_maxTerms),
+	'minmax': (parse_minMax, eval_minMax),
+	'minMax': (parse_minMax, eval_minMax),
+	'values': (parse_valuesfn, eval_valuesfn),
+}
+
+
+
 def lex(s):
 	i = 0
 	n = len(s)
@@ -215,6 +346,27 @@ def lex(s):
 			image = m.group()
 			if image in consts:
 				yield {'type': 'value', 'image': image, 'value': consts[image]}
+			elif image in funcs:
+				i = m.end()
+				while i < n and ord(s[i]) <= 32:
+					i += 1
+				if i >= n:
+					raise ValueError('Expected ( but found end of input')
+				if s[i] not in '([':
+					raise ValueError('Expected ( but found ' + s[i])
+				i += 1
+				j = i
+				while j < n and s[j] not in '()[]':
+					j += 1
+				if j >= n:
+					raise ValueError('Expected ) but found end of input')
+				if s[j] not in ')]':
+					raise ValueError('Expected ) but found ' + s[j])
+				args = s[i:j].strip()
+				yield {'type': 'func', 'image': image, 'func': image, 'args': args}
+				j += 1
+				i = j
+				continue
 			elif image in ops:
 				prec, opname = ops_map[image]
 				yield {'type': 'op', 'image': image, 'prec': prec, 'op': opname}
@@ -252,6 +404,9 @@ class parser:
 
 		if t['type'] == 'id':
 			return t
+
+		if t['type'] == 'func':
+			return funcs[t['func']][0](t)
 
 		if t['type'] == 'op':
 			if t['op'] == ':LP:':
@@ -300,14 +455,6 @@ class parser:
 
 
 
-def ttstr(v):
-	if v is None: return '-'
-	if v is False: return '0'
-	if v is True: return '1'
-	return str(v)
-
-
-
 def tt_toString(e):
 	def tt_toString2(e):
 		if e['type'] == 'value':
@@ -315,6 +462,9 @@ def tt_toString(e):
 
 		if e['type'] == 'id':
 			return (e['image'], 0)
+
+		if e['type'] == 'func':
+			return (e['func'].lower() + '(' + e['args'] + ')', 0)
 
 		if e['type'] == 'unary':
 			a, prec = tt_toString2(e['a'])
@@ -347,6 +497,15 @@ def tt_inputs_outputs(e, inputs=None, outputs=None):
 				inputs = {image}
 			else:
 				inputs.add(image)
+		return (inputs, outputs)
+
+	if e['type'] == 'func':
+		for image in e['inputs']:
+			if outputs is None or image not in outputs:
+				if inputs is None:
+					inputs = {image}
+				else:
+					inputs.add(image)
 		return (inputs, outputs)
 
 	if e['type'] == 'unary':
@@ -384,6 +543,15 @@ def tt_eval(bindings, e):
 			return bindings[image]
 		else:
 			raise ValueError('Undefined variable: ' + image)
+
+	if e['type'] == 'func':
+		inputValues = []
+		for image in e['inputs']:
+			if image in bindings:
+				inputValues.append(bindings[image])
+			else:
+				raise ValueError('Undefined variable: ' + image)
+		return funcs[e['func']][1](e, inputValues)
 
 	if e['type'] == 'unary':
 		a = tt_eval(bindings, e['a'])
@@ -498,7 +666,7 @@ def tt_print(table):
 				print('Values:\t' + ''.join(ttstr(valuesByOutput[k][i]) for i in sorted(valuesByOutput[k])))
 				print('Minterms:\t' + ', '.join(str(i) for i in sorted(minTerms[k])))
 				print('Maxterms:\t' + ', '.join(str(i) for i in sorted(maxTerms[k])))
-				print('Ignored:\t' + ', '.join(str(i) for i in sorted(dontCares[k])))
+				print('Don\'t Care:\t' + ', '.join(str(i) for i in sorted(dontCares[k])))
 
 	except Exception as e:
 		print(e)
@@ -546,6 +714,25 @@ def tt_help():
 	print('    Assignment:     :  :=  :==  <-  <=  ←  ⇐')
 	print('    Parentheses:    (  )  [  ]')
 	print('    Delimiter:      ,  ;  ::')
+	print('')
+	print('Alternate expression forms:')
+	print('')
+	print('    minterms(1, 2)             - function on A, B... with minterms 1, 2...')
+	print('    minterms(1, 2; 3, 4)       - same but with "don\'t care" terms 3, 4...')
+	print('    minterms(X, Y; 1, 2)       - function on X, Y... with minterms 1, 2...')
+	print('    minterms(X, Y; 1, 2; 3, 4) - same but with "don\'t care" terms 3, 4...')
+	print('                                 (unspecified terms will be maxterms)')
+	print('    maxterms(1, 2)             - function on A, B... with maxterms 1, 2...')
+	print('    maxterms(1, 2; 3, 4)       - same but with "don\'t care" terms 3, 4...')
+	print('    maxterms(X, Y; 1, 2)       - function on X, Y... with maxterms 1, 2...')
+	print('    maxterms(X, Y; 1, 2; 3, 4) - same but with "don\'t care" terms 3, 4...')
+	print('                                 (unspecified terms will be minterms)')
+	print('    minmax(1, 2; 3, 4)         - ...with minterms 1, 2... AND maxterms 3, 4...')
+	print('    minmax(X, Y; 1, 2; 3, 4)   - ...with minterms 1, 2... AND maxterms 3, 4...')
+	print('                                 (unspecified terms will be "don\'t care")')
+	print('    values(1010--01)           - function on A, B... with truth table 1, 0...')
+	print('    values(X, Y; 1010--01)     - function on X, Y... with truth table 1, 0...')
+	print('                                 (false to true order; - or X is "don\'t care")')
 	print('')
 
 def tt_main(args):
