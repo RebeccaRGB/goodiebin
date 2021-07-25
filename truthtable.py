@@ -731,7 +731,147 @@ def tt(s):
 
 
 
+def tt_simplify(inputs, minTerms, dontCares):
+	def termTuples(inputs, minTerms, dontCares):
+		for term in set(minTerms).union(set(dontCares)):
+			m = (term,)
+			s = bin(term)[2:].rjust(len(inputs), '0')
+			yield (m, s)
+
+	def strdiffs(a, b):
+		for i in range(max(len(a), len(b))):
+			if a[i] != b[i]:
+				yield i
+
+	def implicants(terms):
+		for i in range(len(terms)):
+			found = False
+			for j in range(len(terms)):
+				if i != j:
+					d = list(strdiffs(terms[i][1], terms[j][1]))
+					if len(d) == 1:
+						m = tuple(sorted( set(terms[i][0]).union(set(terms[j][0])) ))
+						s = terms[i][1][:d[0]] + '-' + terms[j][1][d[0]+1:]
+						yield (m, s)
+						found = True
+			if not found:
+				yield terms[i]
+
+	def multiplySOP(sop0, sop1):
+		# Applies the equivalence XX = X by yielding sets.
+		# sop0, sop1 : Iterable<Iterable<T>>
+		# p0, p1 : Iterable<T>
+		# yields : Set<T>
+		# returns : Generator<Set<T>>
+		def multiplySOP2(sop0, sop1):
+			for p0 in sop0:
+				for p1 in sop1:
+					yield set(p0).union(set(p1))
+		# Applies the equivalence X + XY = X by discarding supersets.
+		# sop0, sop1 : Iterable<Iterable<T>>
+		# multiplySOP2() : Generator<Set<T>>
+		# sorted(multiplySOP2()) : List<Set<T>>
+		# newTerm, oldTerm : Set<T>
+		# terms : List<Set<T>>
+		terms = []
+		for newTerm in sorted(multiplySOP2(sop0, sop1), key=len):
+			for oldTerm in terms:
+				if oldTerm.issubset(newTerm):
+					break
+			else:
+				terms.append(newTerm)
+		# Applies the equivalence X + X = X by returning a set.
+		# terms : List<Set<T>>
+		# t : Set<T>
+		# returns : Set<Tuple<T>>
+		return set(tuple(sorted(t)) for t in terms)
+
+	def posToSOP(pos):
+		# pos : Iterable<Iterable<T>>
+		# terms : Iterable<T>
+		# term : T
+		# (term,) : Tuple<T>
+		# set((term,)) : Set<Tuple<T>>
+		# sops : List<Set<Tuple<T>>>
+		# multiplySOP() : Set<Tuple<T>>
+		# returns : Set<Tuple<T>>
+		sops = [set((term,) for term in terms) for terms in pos]
+		return reduce(multiplySOP, sops) if sops else ()
+
+	def stripNot(s):
+		return s.replace('~', '')
+
+	def valuesToExprs(inputs, values):
+		for i in range(len(values)):
+			if values[i] == '0':
+				yield '~' + inputs[i]
+			if values[i] == '1':
+				yield inputs[i]
+
+	def productsToExprs(inputs, sop):
+		for p in sop:
+			yield ' & '.join(valuesToExprs(inputs, p[1]))
+
+	def sopToExpr(inputs, sop):
+		return ' | '.join(productsToExprs(inputs, sop))
+
+	# Find prime implicants
+	imps = list(set(termTuples(inputs, minTerms, dontCares)))
+	while True:
+		tmp = list(set(implicants(imps)))
+		if tmp == imps: break
+		imps = tmp
+
+	# Find essential prime implicants
+	epis = []
+	rmt = []
+	for term in minTerms:
+		tmp = [imp for imp in imps if term in imp[0]]
+		if len(tmp) == 1:
+			epis.append(tmp[0])
+			rmt.extend(tmp[0][0])
+
+	# Build product of sums from reduced set of prime implicants
+	pos = []
+	for term in minTerms:
+		if term not in rmt:
+			tmp = [imp for imp in imps if term in imp[0]]
+			pos.append(tmp)
+
+	# If no prime implicants remaining, return the simplified expression
+	if not pos:
+		yield sopToExpr(inputs, sorted(set(epis)))
+		return
+
+	# Transform to sum of products
+	sop = posToSOP(pos)
+	# Choose products with fewest terms
+	fewest = min(len(p) for p in sop)
+	sop = [p for p in sop if len(p) == fewest]
+	# Choose products with fewest inputs
+	fewest = min(sum(f[1].count('0') + f[1].count('1') for f in p) for p in sop)
+	sop = [p for p in sop if sum(f[1].count('0') + f[1].count('1') for f in p) == fewest]
+
+	# Yield simplified expressions
+	for p in sorted(sop):
+		yield sopToExpr(inputs, sorted(set(epis).union(set(p))))
+
+
+
 def tt_print(table):
+	def tt_chk(expr, minTerms, maxTerms, dontCares, valuesByOutput):
+		s, p, f = 0, 0, 0
+		isHeader = True
+		for iv, ov, ev in tt(expr):
+			if isHeader:
+				isHeader = False
+			else:
+				index = int(''.join('1' if x else '0' for x in iv), 2)
+				if valuesByOutput[index] is None: s += 1
+				elif valuesByOutput[index] is ev[0]: p += 1
+				else: f += 1
+		return s == len(dontCares) and p == len(minTerms) + len(maxTerms) and f == 0
+
 	try:
 		isHeader = True
 		inputs, outputs, exprs = [], [], []
@@ -774,6 +914,12 @@ def tt_print(table):
 				print('Minterms:\t' + ', '.join(str(i) for i in sorted(minTerms[k])))
 				print('Maxterms:\t' + ', '.join(str(i) for i in sorted(maxTerms[k])))
 				print('Don\'t Care:\t' + ', '.join(str(i) for i in sorted(dontCares[k])))
+				print('Simplified Forms:')
+				for expr in tt_simplify(inputs, minTerms[k], dontCares[k]):
+					# Verify that the simplified expression actually has the
+					# same truth table, not counting "don't care" values
+					assert tt_chk(expr, minTerms[k], maxTerms[k], dontCares[k], valuesByOutput[k]), 'Assertion failed!'
+					print(expr)
 
 	except Exception as e:
 		print(e)
