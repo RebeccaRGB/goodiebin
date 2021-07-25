@@ -806,8 +806,8 @@ def tt_simplify(inputs, minTerms, dontCares):
 				yield inputs[i]
 
 	def productsToExprs(inputs, sop):
-		for p in sop:
-			yield ' & '.join(valuesToExprs(inputs, p[1]))
+		for values in sorted([p[1] for p in sop], reverse=True):
+			yield ' & '.join(valuesToExprs(inputs, values))
 
 	def sopToExpr(inputs, sop):
 		return ' | '.join(productsToExprs(inputs, sop))
@@ -860,8 +860,8 @@ def tt_simplify(inputs, minTerms, dontCares):
 	sop = [p for p in sop if sum(f[1].count('0') + f[1].count('1') for f in p) == fewest]
 
 	# Yield simplified expressions
-	for p in sorted(sop):
-		yield sopToExpr(inputs, sorted(set(epis).union(set(p))))
+	for p in sorted(sop, key=lambda sop: sorted([p[1] for p in sop], reverse=True), reverse=True):
+		yield sopToExpr(inputs, set(epis).union(set(p)))
 
 
 
