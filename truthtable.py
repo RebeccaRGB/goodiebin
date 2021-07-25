@@ -820,9 +820,9 @@ def tt_simplify(inputs, minTerms, dontCares):
 	# Find prime implicants
 	imps = list(set(termTuples(inputs, minTerms, dontCares)))
 	while True:
-		tmp = list(set(implicants(imps)))
-		if tmp == imps: break
-		imps = tmp
+		tmp = set(implicants(imps))
+		if tmp == set(imps): break
+		imps = list(tmp)
 
 	# Degenerate case of never false
 	if len(imps) == 1 and imps[0][1].replace('-','') == '':
@@ -1018,6 +1018,11 @@ def tt_main(args):
 				'values(-1-1); values(1-1-); values(1111)',
 				'minterms(4,8,10,11,12,15;9,14)',
 				'minterms(0,1,2,5,6,7)',
+				'U:values(0001010111110110)',
+				'V:values(0101110001010001)',
+				'W:values(0001010100001001)',
+				'X:values(0010010100110101)',
+				'Y:values(0101001101010111)',
 				'nof a; pos a; ist a; nec a; unk a; con a',
 				'a imp b; a impk b; a impl b',
 				'true and false; true or false; true; false',
