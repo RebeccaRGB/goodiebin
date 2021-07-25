@@ -35,6 +35,27 @@ ops_map = {
 	'Boolean': (0, 'buf'),
 	'boolean': (0, 'buf'),
 
+	'NOF': (0, 'pos'),
+	'Nof': (0, 'pos'),
+	'nof': (0, 'pos'),
+	'POS': (0, 'pos'),
+	'Pos': (0, 'pos'),
+	'pos': (0, 'pos'),
+
+	'IST': (0, 'nec'),
+	'Ist': (0, 'nec'),
+	'ist': (0, 'nec'),
+	'NEC': (0, 'nec'),
+	'Nec': (0, 'nec'),
+	'nec': (0, 'nec'),
+
+	'UNK': (0, 'con'),
+	'Unk': (0, 'con'),
+	'unk': (0, 'con'),
+	'CON': (0, 'con'),
+	'Con': (0, 'con'),
+	'con': (0, 'con'),
+
 	'&': (1, 'and'),
 	'&&': (1, 'and'),
 	'&&&': (1, 'and'),
@@ -125,6 +146,12 @@ ops_map = {
 	'IMP': (4, 'imp'),
 	'Imp': (4, 'imp'),
 	'imp': (4, 'imp'),
+	'IMPK': (4, 'imp'),
+	'Impk': (4, 'imp'),
+	'impk': (4, 'imp'),
+	'IMPL': (4, 'impl'),
+	'Impl': (4, 'impl'),
+	'impl': (4, 'impl'),
 
 	'-/>': (4, 'nimp'),
 	'=/>': (4, 'nimp'),
@@ -134,6 +161,12 @@ ops_map = {
 	'NIMP': (4, 'nimp'),
 	'Nimp': (4, 'nimp'),
 	'nimp': (4, 'nimp'),
+	'NIMPK': (4, 'nimp'),
+	'Nimpk': (4, 'nimp'),
+	'nimpk': (4, 'nimp'),
+	'NIMPL': (4, 'nimpl'),
+	'Nimpl': (4, 'nimpl'),
+	'nimpl': (4, 'nimpl'),
 
 	'=': (5, 'eq'),
 	'==': (5, 'eq'),
@@ -533,6 +566,77 @@ def tt_inputs_outputs(e, inputs=None, outputs=None):
 
 
 
+def tvl_buf(v):
+	if v is True: return True
+	if v is False: return False
+	return None
+
+def tvl_not(v):
+	if v is True: return False
+	if v is False: return True
+	return None
+
+def tvl_and(u, v):
+	if u is False or v is False: return False
+	if u is True and v is True: return True
+	return None
+
+def tvl_nand(u, v):
+	if u is False or v is False: return True
+	if u is True and v is True: return False
+	return None
+
+def tvl_or(u, v):
+	if u is True or v is True: return True
+	if u is False and v is False: return False
+	return None
+
+def tvl_nor(u, v):
+	if u is True or v is True: return False
+	if u is False and v is False: return True
+	return None
+
+def tvl_xor(u, v):
+	if u is False: return tvl_buf(v)
+	if u is True: return tvl_not(v)
+	return None
+
+def tvl_xnor(u, v):
+	if u is False: return tvl_not(v)
+	if u is True: return tvl_buf(v)
+	return None
+
+def tvl_imp(u, v):
+	if u is False or v is True: return True
+	if u is True and v is False: return False
+	return None
+
+def tvl_nimp(u, v):
+	if u is False or v is True: return False
+	if u is True and v is False: return True
+	return None
+
+def tvl_impl(u, v):
+	if u is False or v is True: return True
+	if u is True and v is False: return False
+	if u is True or v is False: return None
+	return True
+
+def tvl_nimpl(u, v):
+	if u is False or v is True: return False
+	if u is True and v is False: return True
+	if u is True or v is False: return None
+	return False
+
+def tvl_pos(v):
+	return v is not False
+
+def tvl_nec(v):
+	return v is True
+
+def tvl_con(v):
+	return not (v is True or v is False)
+
 def tt_eval(bindings, e):
 	if e['type'] == 'value':
 		return e['value']
@@ -555,9 +659,11 @@ def tt_eval(bindings, e):
 
 	if e['type'] == 'unary':
 		a = tt_eval(bindings, e['a'])
-		if a is None: return None
-		if e['op'] == 'not': return not a
-		if e['op'] == 'buf': return not not a
+		if e['op'] == 'not': return tvl_not(a)
+		if e['op'] == 'buf': return tvl_buf(a)
+		if e['op'] == 'pos': return tvl_pos(a)
+		if e['op'] == 'nec': return tvl_nec(a)
+		if e['op'] == 'con': return tvl_con(a)
 		raise ValueError('Undefined operator: ' + e['op'])
 
 	if e['type'] == 'binary':
@@ -571,17 +677,18 @@ def tt_eval(bindings, e):
 				raise ValueError('Invalid lvalue: ' + tt_toString(e['a']))
 		a = tt_eval(bindings, e['a'])
 		b = tt_eval(bindings, e['b'])
-		if a is None or b is None: return None
-		if e['op'] == 'and': return a and b
-		if e['op'] == 'nand': return not (a and b)
-		if e['op'] == 'xor': return (not a) != (not b)
-		if e['op'] == 'xnor': return (not a) == (not b)
-		if e['op'] == 'or': return a or b
-		if e['op'] == 'nor': return not (a or b)
-		if e['op'] == 'imp': return b or not a
-		if e['op'] == 'nimp': return a and not b
-		if e['op'] == 'eq': return (not a) == (not b)
-		if e['op'] == 'ne': return (not a) != (not b)
+		if e['op'] == 'and': return tvl_and(a, b)
+		if e['op'] == 'nand': return tvl_nand(a, b)
+		if e['op'] == 'xor': return tvl_xor(a, b)
+		if e['op'] == 'xnor': return tvl_xnor(a, b)
+		if e['op'] == 'or': return tvl_or(a, b)
+		if e['op'] == 'nor': return tvl_nor(a, b)
+		if e['op'] == 'imp': return tvl_imp(a, b)
+		if e['op'] == 'nimp': return tvl_nimp(a, b)
+		if e['op'] == 'impl': return tvl_impl(a, b)
+		if e['op'] == 'nimpl': return tvl_nimpl(a, b)
+		if e['op'] == 'eq': return a is b
+		if e['op'] == 'ne': return a is not b
 		raise ValueError('Undefined operator: ' + e['op'])
 
 
