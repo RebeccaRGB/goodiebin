@@ -812,12 +812,22 @@ def tt_simplify(inputs, minTerms, dontCares):
 	def sopToExpr(inputs, sop):
 		return ' | '.join(productsToExprs(inputs, sop))
 
+	# Degenerate case of never true
+	if not minTerms:
+		yield '0'
+		return
+
 	# Find prime implicants
 	imps = list(set(termTuples(inputs, minTerms, dontCares)))
 	while True:
 		tmp = list(set(implicants(imps)))
 		if tmp == imps: break
 		imps = tmp
+
+	# Degenerate case of never false
+	if len(imps) == 1 and imps[0][1].replace('-','') == '':
+		yield '1'
+		return
 
 	# Find essential prime implicants
 	epis = []
@@ -908,9 +918,9 @@ def tt_print(table):
 				print('')
 				print('Output:\t' + k)
 				print('Values:\t' + ''.join(ttstr(valuesByOutput[k][i]) for i in sorted(valuesByOutput[k])))
-				print('Minterms:\t' + ', '.join(str(i) for i in sorted(minTerms[k])))
-				print('Maxterms:\t' + ', '.join(str(i) for i in sorted(maxTerms[k])))
-				print('Don\'t Care:\t' + ', '.join(str(i) for i in sorted(dontCares[k])))
+				print('Minterms:\t' + (', '.join(str(i) for i in sorted(minTerms[k])) if minTerms[k] else '-'))
+				print('Maxterms:\t' + (', '.join(str(i) for i in sorted(maxTerms[k])) if maxTerms[k] else '-'))
+				print('Don\'t Care:\t' + (', '.join(str(i) for i in sorted(dontCares[k])) if dontCares[k] else '-'))
 				print('Simplified Forms:')
 				for expr in tt_simplify(inputs, minTerms[k], dontCares[k]):
 					# Verify that the simplified expression actually has the
@@ -998,6 +1008,23 @@ def tt_main(args):
 		i += 1
 		if arg == '--help':
 			tt_help()
+		elif arg == '--test':
+			for line in [
+				'a and b; a or b; a xor b',
+				'a & ~a & b & ~b',
+				'a | ~a | b | ~b',
+				'values(0000); values(0-0-); values(-0-0)',
+				'values(0101); values(1010)',
+				'values(-1-1); values(1-1-); values(1111)',
+				'minterms(4,8,10,11,12,15;9,14)',
+				'minterms(0,1,2,5,6,7)',
+				'nof a; pos a; ist a; nec a; unk a; con a',
+				'a imp b; a impk b; a impl b',
+				'true and false; true or false; true; false',
+			]:
+				if not first: print('')
+				tt_print(tt(line))
+				first = False
 		elif arg == '-e':
 			if i < n:
 				if not first: print('')
