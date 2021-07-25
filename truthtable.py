@@ -798,9 +798,6 @@ def tt_simplify(inputs, minTerms, dontCares):
 		sops = [set((term,) for term in terms) for terms in pos]
 		return reduce(multiplySOP, sops) if sops else ()
 
-	def stripNot(s):
-		return s.replace('~', '')
-
 	def valuesToExprs(inputs, values):
 		for i in range(len(values)):
 			if values[i] == '0':
@@ -859,16 +856,16 @@ def tt_simplify(inputs, minTerms, dontCares):
 
 
 def tt_print(table):
-	def tt_chk(expr, minTerms, maxTerms, dontCares, valuesByOutput):
+	def tt_chk(expr, inputs, minTerms, maxTerms, dontCares, valuesByOutput):
 		s, p, f = 0, 0, 0
 		isHeader = True
-		for iv, ov, ev in tt(expr):
+		for iv, ov, ev in tt(';'.join(inputs) + ';' + expr):
 			if isHeader:
 				isHeader = False
 			else:
 				index = int(''.join('1' if x else '0' for x in iv), 2)
 				if valuesByOutput[index] is None: s += 1
-				elif valuesByOutput[index] is ev[0]: p += 1
+				elif valuesByOutput[index] is ev[len(inputs)]: p += 1
 				else: f += 1
 		return s == len(dontCares) and p == len(minTerms) + len(maxTerms) and f == 0
 
@@ -918,7 +915,7 @@ def tt_print(table):
 				for expr in tt_simplify(inputs, minTerms[k], dontCares[k]):
 					# Verify that the simplified expression actually has the
 					# same truth table, not counting "don't care" values
-					assert tt_chk(expr, minTerms[k], maxTerms[k], dontCares[k], valuesByOutput[k]), 'Assertion failed!'
+					assert tt_chk(expr, inputs, minTerms[k], maxTerms[k], dontCares[k], valuesByOutput[k]), 'Assertion failed!'
 					print(expr)
 
 	except Exception as e:
