@@ -188,6 +188,12 @@ def geomean(*args):
 	p = reduce(lambda x, y: x * y, data, 1)
 	return math.pow(p, 1.0 / len(data))
 
+def harmean(*args):
+	for a in args:
+		if a == 0.0:
+			return 0.0
+	return len(args) / math.fsum(1.0 / a for a in args)
+
 def svariance(*args):
 	data = list(args)
 	avg = math.fsum(data) / len(data)
@@ -474,8 +480,10 @@ funcs = {
 	'ycoord': (2, 2, func_wrap(lambda r, t: r * math.sin(t))),
 	'avg': (0, 0, func_wrap(average)),
 	'geom': (0, 0, func_wrap(geomean)),
+	'harm': (0, 0, func_wrap(harmean)),
 	'average': (0, 0, func_wrap(average)),
 	'geomean': (0, 0, func_wrap(geomean)),
+	'harmean': (0, 0, func_wrap(harmean)),
 	'min': (0, 0, func_iterwrap(min)),
 	'max': (0, 0, func_iterwrap(max)),
 	'minimum': (0, 0, func_iterwrap(min)),
