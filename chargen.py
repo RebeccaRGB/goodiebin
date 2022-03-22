@@ -10,10 +10,21 @@ def chargen(s, e, rm, cm, o, rc, cc, rd, cd):
 		while r < rc or rc < 1:
 			c = 0
 			while c < cc or cc < 1:
-				if c != 0: stdout.write(cd.encode('utf-8'))
-				stdout.write(unichr( (rm * r + cm * c + o) % (e - s) + s ).encode('utf-8'))
+				if c != 0:
+					try:
+						stdout.write(cd.encode('utf-8'))
+					except TypeError:
+						stdout.write(cd)
+				cp = (rm * r + cm * c + o) % (e - s) + s
+				try:
+					stdout.write(unichr(cp).encode('utf-8'))
+				except NameError:
+					stdout.write(chr(cp))
 				c += 1
-			stdout.write(rd.encode('utf-8'))
+			try:
+				stdout.write(rd.encode('utf-8'))
+			except TypeError:
+				stdout.write(rd)
 			r += 1
 	except:
 		pass
@@ -25,14 +36,14 @@ def parseord(s):
 		try:
 			return ord(s)
 		except:
-			print s + " is not a single character"
+			print(s + " is not a single character")
 			exit()
 
 def parseint(s):
 	try:
 		return int(s, 0)
 	except:
-		print s + " is not an integer"
+		print(s + " is not an integer")
 		exit()
 
 def parsechr(s):
@@ -56,20 +67,20 @@ def main():
 		arg = argv[i]
 		i += 1
 		if arg == "--help":
-			print "usage: chargen [<option> [<value>] [...]]"
-			print "   -sc <uni>   -s <uni>   start character (-sc <x> is the same as -fc <x>)"
-			print "   -ec <uni>   -e <uni>   end character (-ec <x> is the same as -lc <x-1>)"
-			print "   -fc <uni>   -f <uni>   first character (-fc <x> is the same as -sc <x>)"
-			print "   -lc <uni>   -l <uni>   last character (-lc <x> is the same as -ec <x+1>)"
-			print "   -rm <int>   -y <int>   difference in code point value between lines"
-			print "   -cm <int>   -x <int>   difference in code point value between columns"
-			print "   -so <int>   -o <int>   first character to print relative to start character"
-			print "   -rc <int>   -n <int>   number of lines to print"
-			print "   -cc <int>   -w <int>   number of columns to print"
-			print "   -hc         -h         print horizontal chart (sets -rm, -cm, -so, -rc, -cc)"
-			print "   -vc         -v         print vertical chart (sets -rm, -cm, -so, -rc, -cc)"
-			print "   -rd <str>   -r <str>   string to print between lines (default is newline)"
-			print "   -cd <str>   -t <str>   string to print between columns (default is empty)"
+			print("usage: chargen [<option> [<value>] [...]]")
+			print("   -sc <uni>   -s <uni>   start character (-sc <x> is the same as -fc <x>)")
+			print("   -ec <uni>   -e <uni>   end character (-ec <x> is the same as -lc <x-1>)")
+			print("   -fc <uni>   -f <uni>   first character (-fc <x> is the same as -sc <x>)")
+			print("   -lc <uni>   -l <uni>   last character (-lc <x> is the same as -ec <x+1>)")
+			print("   -rm <int>   -y <int>   difference in code point value between lines")
+			print("   -cm <int>   -x <int>   difference in code point value between columns")
+			print("   -so <int>   -o <int>   first character to print relative to start character")
+			print("   -rc <int>   -n <int>   number of lines to print")
+			print("   -cc <int>   -w <int>   number of columns to print")
+			print("   -hc         -h         print horizontal chart (sets -rm, -cm, -so, -rc, -cc)")
+			print("   -vc         -v         print vertical chart (sets -rm, -cm, -so, -rc, -cc)")
+			print("   -rd <str>   -r <str>   string to print between lines (default is newline)")
+			print("   -cd <str>   -t <str>   string to print between columns (default is empty)")
 			exit()
 		elif (arg == "-sc" or arg == "-s") and i < len(argv):
 			s = parseord(argv[i])
@@ -123,7 +134,7 @@ def main():
 			cd = parsechr(argv[i])
 			i += 1
 		else:
-			print "Unknown option: " + arg
+			print("Unknown option: " + arg)
 			exit()
 	chargen(s, e, rm, cm, o, rc, cc, rd, cd)
 

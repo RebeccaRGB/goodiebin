@@ -125,8 +125,7 @@ ops_map = {
 	'::': (16, ':EOS:'),
 }
 
-ops = ops_map.keys()
-ops.sort()
+ops = sorted(ops_map.keys())
 ops.sort(key=len, reverse=True)
 
 

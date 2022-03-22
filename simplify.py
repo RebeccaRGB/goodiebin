@@ -1,10 +1,19 @@
 #!/usr/bin/env python
 
-from fractions import gcd
 from sys import argv
 
+try:
+	from fractions import gcd
+except ImportError:
+	from math import gcd
+
+try:
+	from functools import reduce
+except ImportError:
+	pass
+
 def mgcd(ns):
-	ns = map(abs, filter(None, ns))
+	ns = [abs(n) for n in ns if n]
 	if ns:
 		return reduce(gcd, ns)
 	else:
@@ -12,22 +21,22 @@ def mgcd(ns):
 
 def simplify(ns):
 	divisor = mgcd(ns)
-	ns = map(lambda n: n // divisor, ns)
+	ns = [n // divisor for n in ns]
 	return (ns, divisor)
 
 def run_simplify(ns):
 	ns, divisor = simplify(ns)
-	print "GCD: " + str(divisor)
-	print "Sim: " + " ".join(map(str, ns))
+	print("GCD: " + str(divisor))
+	print("Sim: " + " ".join(str(n) for n in ns))
 
 def main():
 	if len(argv) <= 1:
-		print "usage: simplify <value> [<value> [...]]"
+		print("usage: simplify <value> [<value> [...]]")
 	else:
 		try:
-			ns = map(int, argv[1:])
+			ns = [int(a) for a in argv[1:]]
 			run_simplify(ns)
 		except:
-			print "usage: simplify <value> [<value> [...]]"
+			print("usage: simplify <value> [<value> [...]]")
 
 if __name__ == "__main__": main()

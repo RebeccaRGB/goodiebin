@@ -14,7 +14,7 @@ def approximate(n, m):
 		best_val = 1.0
 		best_dif = abs(1.0 - n)
 		best_err = best_dif / n
-		for den in xrange(1, m + 1):
+		for den in range(1, m + 1):
 			num = int(round(n * float(den)))
 			val = float(num) / float(den)
 			dif = abs(val - n)
@@ -29,24 +29,25 @@ def approximate(n, m):
 
 def run_approximate(n, m):
 	num, den, val, dif, err = approximate(n, m)
-	print str(n) + u' \u2248 ' + str(num) + " / " + str(den) + " = " + str(val)
-	print "Delta: " + str(dif)
-	print "Error: " + str(err * 100.0) + "%"
+	print(str(n) + u' \u2248 ' + str(num) + " / " + str(den) + " = " + str(val))
+	print("Delta: " + str(dif))
+	print("Error: " + str(err * 100.0) + "%")
 
 def main():
 	if len(argv) <= 2:
-		print "usage: approximate <highest-denominator> <value> [<value> [...]]"
+		print("usage: approximate <highest-denominator> <value> [<value> [...]]")
 	else:
 		try:
 			mm = max(1, abs(int(argv[1])))
-			for i in xrange(2, len(argv)):
-				if i > 2: print
+			for i in range(2, len(argv)):
+				if i > 2:
+					print("")
 				try:
 					n = float(argv[i])
 					run_approximate(n, mm)
 				except:
-					print argv[i] + " is not a number"
+					print(argv[i] + " is not a number")
 		except:
-			print argv[1] + " is not an integer"
+			print(argv[1] + " is not an integer")
 
 if __name__ == "__main__": main()
