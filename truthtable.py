@@ -242,11 +242,11 @@ def ttstr(v):
 
 def column_address(i):
 	a = chr(65 + (i % 26))
-	i /= 26
+	i //= 26
 	while i:
 		i -= 1
 		a = chr(65 + (i % 26)) + a
-		i /= 26
+		i //= 26
 	return a
 
 def parse_inputs(s):

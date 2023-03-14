@@ -39,7 +39,7 @@ def strbase(n, b):
 		while ip > 0:
 			(ip, digit) = divmod(ip, b)
 			ips = strdigit(int(digit)) + ips
-		while fp > 0:
+		while fp > 0 and len(fps) < 100:
 			fp *= b
 			digit = floor(fp)
 			fp -= digit

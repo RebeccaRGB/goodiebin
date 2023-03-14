@@ -158,6 +158,12 @@ consts = {
 
 
 
+def isint(x):
+	try:
+		return isinstance(x, (int, long))
+	except:
+		return isinstance(x, int)
+
 def signum(x):
 	if x == 0:
 		return 0
@@ -237,9 +243,9 @@ def lcm(a, b):
 	return a / gcd(a, b) * b
 
 def reversebits(v, w):
-	if not isinstance(v, (int, long)):
+	if not isint(v):
 		raise ValueError('reversebits requires integer arguments')
-	if not isinstance(w, (int, long)):
+	if not isint(w):
 		raise ValueError('reversebits requires integer arguments')
 
 	r = (-1 << w) if (v & 1) else 0
@@ -252,9 +258,9 @@ def reversebits(v, w):
 	return r
 
 def reversebytes(v, w):
-	if not isinstance(v, (int, long)):
+	if not isint(v):
 		raise ValueError('reversebytes requires integer arguments')
-	if not isinstance(w, (int, long)):
+	if not isint(w):
 		raise ValueError('reversebytes requires integer arguments')
 
 	r = (-1 << (w << 3)) if (v & 0x80) else 0
@@ -267,7 +273,7 @@ def reversebytes(v, w):
 	return r
 
 def bitlength(x):
-	if not isinstance(x, (int, long)):
+	if not isint(x):
 		raise ValueError('bitlength requires integer arguments')
 
 	r = 0
@@ -277,9 +283,9 @@ def bitlength(x):
 	return r
 
 def bitmingle(a, b):
-	if not isinstance(a, (int, long)):
+	if not isint(a):
 		raise ValueError('bitmingle requires integer arguments')
-	if not isinstance(b, (int, long)):
+	if not isint(b):
 		raise ValueError('bitmingle requires integer arguments')
 
 	n = max(bitlength(a), bitlength(b))
@@ -297,9 +303,9 @@ def bitmingle(a, b):
 	return c
 
 def bitselect(a, b):
-	if not isinstance(a, (int, long)):
+	if not isint(a):
 		raise ValueError('bitselect requires integer arguments')
-	if not isinstance(b, (int, long)):
+	if not isint(b):
 		raise ValueError('bitselect requires integer arguments')
 
 	n = max(bitlength(a), bitlength(b))
@@ -636,7 +642,7 @@ def strbase(n, b, prefix=''):
 		return str(n)
 	elif n < 0:
 		return '-' + strbase(-n, b, prefix)
-	elif isinstance(n, (int, long)):
+	elif isint(n):
 		return prefix + strbase_int(n, b)
 	else:
 		ip = math.floor(n)
@@ -843,12 +849,12 @@ def bec_eval(bindings, e):
 				a['value'] = float(a['value']) / float(b['value'])
 		elif e['op'] == ':QUO:':
 			r = a['value'] / b['value']
-			if not isinstance(r, (int, long)):
+			if not isint(r):
 				r = math.floor(r)
 			a['value'] = r
 		elif e['op'] == ':REM:':
 			r = a['value'] / b['value']
-			if not isinstance(r, (int, long)):
+			if not isint(r):
 				r = math.floor(r)
 			a['value'] = a['value'] - b['value'] * r
 		elif e['op'] == ':ADD:': a['value'] = a['value'] + b['value']

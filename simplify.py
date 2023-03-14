@@ -3,9 +3,9 @@
 from sys import argv
 
 try:
-	from fractions import gcd
-except ImportError:
 	from math import gcd
+except ImportError:
+	from fractions import gcd
 
 try:
 	from functools import reduce
