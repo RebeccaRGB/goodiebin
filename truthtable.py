@@ -4,6 +4,11 @@
 import re
 import sys
 
+try:
+	from functools import reduce
+except ImportError:
+	pass
+
 
 
 id_pattern = re.compile('⊥|⊤|[A-Za-z0-9]+')
