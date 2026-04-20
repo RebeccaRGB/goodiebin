@@ -125,8 +125,7 @@ ops_map = {
 	'::': (16, ':EOS:'),
 }
 
-ops = sorted(ops_map.keys())
-ops.sort(key=len, reverse=True)
+ops = sorted(ops_map.keys(), key=len, reverse=True)
 
 
 
@@ -218,14 +217,13 @@ def pstddev(*args):
 	return math.sqrt(pvariance(*args))
 
 def median(*args):
-	data = list(args)
-	data.sort()
+	data = sorted(list(args))
 	if len(data) % 2 == 1:
-		return data[len(data) / 2]
+		return data[len(data) >> 1]
 	else:
-		a = float(data[len(data) / 2 - 1])
-		b = float(data[len(data) / 2])
-		return (a + b) / 2
+		a = float(data[(len(data) >> 1) - 1])
+		b = float(data[(len(data) >> 1)])
+		return (a + b) / 2.0
 
 def agm(a, b):
 	if math.isnan(a): return a
@@ -501,6 +499,10 @@ funcs = {
 	'svariance': (0, 0, func_wrap(svariance)),
 	'annuity': (2, 2, func_wrap(lambda r, p: (1 - ((1 + r) ** (-p))) / r)),
 	'compound': (2, 2, func_wrap(lambda r, p: (1 + r) ** p)),
+	'eml': (2, 2, func_wrap(lambda x, y: math.exp(x) - math.log(y))),
+	'edl': (2, 2, func_wrap(lambda x, y: math.exp(x) / math.log(y))),
+	'lme': (2, 2, func_wrap(lambda x, y: math.log(x) - math.exp(y))),
+	'lde': (2, 2, func_wrap(lambda x, y: math.log(x) / math.exp(y))),
 	'fact': (1, 1, func_wrap(lambda x: gamma(x + 1))),
 	'lfact': (1, 1, func_wrap(lambda x: lgamma(x + 1))),
 	'lnfact': (1, 1, func_wrap(lambda x: lgamma(x + 1))),
@@ -903,6 +905,7 @@ def bec_print(bindings, s):
 def bec_repl(bindings):
 	while True:
 		sys.stdout.write('bec> ');
+		sys.stdout.flush();
 		try:
 			line = sys.stdin.readline().strip()
 			if line == 'bye' or line == 'exit' or line == 'quit':
@@ -951,14 +954,12 @@ def bec_help(section):
 		print('    ;                 ::            statement separator')
 	elif section == 'constants':
 		print('Constants:')
-		ids = consts.keys()
-		ids.sort()
+		ids = sorted(consts.keys())
 		for id in ids:
 			print('    %s    = %s' % ((id + '          ')[0:10], str(consts[id])))
 	elif section == 'functions':
 		print('Functions:')
-		ids = funcs.keys()
-		ids.sort()
+		ids = sorted(funcs.keys())
 		for i in range(0, len(ids)):
 			if i % 4 == 0:
 				sys.stdout.write('    ')
