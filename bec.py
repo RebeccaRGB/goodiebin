@@ -225,6 +225,12 @@ def median(*args):
 		b = float(data[(len(data) >> 1)])
 		return (a + b) / 2.0
 
+def fma(x, y, z):
+	try:
+		return math.fma(x, y, z)
+	except:
+		return x * y + z
+
 def agm(a, b):
 	if math.isnan(a): return a
 	if math.isnan(b): return b
@@ -318,6 +324,34 @@ def bitselect(a, b):
 		c |= (-1 << ci)
 	return c
 
+def erf(x):
+	try:
+		return math.erf(x)
+	except:
+		return 1.0 - erfc(x)
+
+def erfc(x):
+	try:
+		return math.erfc(x)
+	except:
+		if math.isnan(x):
+			return x
+		elif x < 0:
+			return 2.0 - erfc(-x)
+		elif x == 0:
+			return 1.0
+		elif math.isinf(x):
+			return 0.0
+		else:
+			y = math.exp(-x*x)
+			y *= 0.56418958354775629 / (x + 2.06955023132914151)
+			y *= (x*x + 2.71078540045147805*x + 5.80755613130301624) / (x*x + 3.47954057099518960*x + 12.06166887286239555)
+			y *= (x*x + 3.47469513777439592*x + 12.07402036406381411) / (x*x + 3.72068443960225092*x + 8.44319781003968454)
+			y *= (x*x + 4.00561509202259545*x + 9.30596659485887898) / (x*x + 3.90225704029924078*x + 6.36161630953880464)
+			y *= (x*x + 5.16722705817812584*x + 9.12661617673673262) / (x*x + 4.03296893109262491*x + 5.13578530585681539)
+			y *= (x*x + 5.95908795446633271*x + 9.19435612886969243) / (x*x + 4.11240942957450885*x + 4.48640329523408675)
+			return y
+
 def gamma(z):
 	try:
 		return math.gamma(z)
@@ -399,7 +433,8 @@ funcs = {
 	'signum': (1, 1, func_wrap(signum)),
 	'sqrt': (1, 1, func_wrap(math.sqrt)),
 	'cbrt': (1, 1, func_wrap(lambda x: math.pow(x, 1.0/3.0))),
-	'qtrt': (1, 1, func_wrap(lambda x: math.sqrt(math.sqrt(x)))),
+	'qtrt': (1, 1, func_wrap(lambda x: math.pow(x, 1.0/4.0))),
+	'twrt': (1, 1, func_wrap(lambda x: math.pow(x, 1.0/12.0))),
 	'toDegrees': (1, 1, func_wrap(math.degrees)),
 	'toRadians': (1, 1, func_wrap(math.radians)),
 	'todegrees': (1, 1, func_wrap(math.degrees)),
@@ -521,6 +556,9 @@ funcs = {
 	'nPr': (2, 2, func_wrap(lambda n, r: gamma(n + 1) / gamma(n - r + 1))),
 	'npr': (2, 2, func_wrap(lambda n, r: gamma(n + 1) / gamma(n - r + 1))),
 	'pick': (2, 2, func_wrap(lambda n, r: gamma(n + 1) / gamma(n - r + 1))),
+	'erf': (1, 1, func_wrap(erf)),
+	'erfc': (1, 1, func_wrap(erfc)),
+	'fma': (3, 3, func_wrap(fma)),
 	'agm': (2, 2, func_wrap(agm)),
 	'gcd': (2, 2, func_wrap(gcd)),
 	'lcm': (2, 2, func_wrap(lcm)),
