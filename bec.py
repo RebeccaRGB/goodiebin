@@ -343,14 +343,47 @@ def erfc(x):
 		elif math.isinf(x):
 			return 0.0
 		else:
-			y = math.exp(-x*x)
-			y *= 0.56418958354775629 / (x + 2.06955023132914151)
+			return math.exp(-x*x) * erfcx(x)
+
+def erfcx(x):
+	try:
+		y = math.erfc(x)
+		return y * math.exp(x*x) if y > 0 else y
+	except:
+		if math.isnan(x):
+			return x
+		elif x < 0:
+			return math.exp(x*x) * erfc(x)
+		elif x == 0:
+			return 1.0
+		elif math.isinf(x):
+			return 0.0
+		else:
+			y = 0.56418958354775629 / (x + 2.06955023132914151)
 			y *= (x*x + 2.71078540045147805*x + 5.80755613130301624) / (x*x + 3.47954057099518960*x + 12.06166887286239555)
 			y *= (x*x + 3.47469513777439592*x + 12.07402036406381411) / (x*x + 3.72068443960225092*x + 8.44319781003968454)
 			y *= (x*x + 4.00561509202259545*x + 9.30596659485887898) / (x*x + 3.90225704029924078*x + 6.36161630953880464)
 			y *= (x*x + 5.16722705817812584*x + 9.12661617673673262) / (x*x + 4.03296893109262491*x + 5.13578530585681539)
 			y *= (x*x + 5.95908795446633271*x + 9.19435612886969243) / (x*x + 4.11240942957450885*x + 4.48640329523408675)
 			return y
+
+def erfi(x):
+	if math.isnan(x):
+		return x
+	elif x < 0:
+		return -erfi(-x)
+	elif x == 0:
+		return 0.0
+	elif math.isinf(x):
+		return x
+	else:
+		y = 0.56418958354775629 / (1j*x + 2.06955023132914151)
+		y *= (2.71078540045147805j*x + 5.80755613130301624 - x*x) / (3.47954057099518960j*x + 12.06166887286239555 - x*x)
+		y *= (3.47469513777439592j*x + 12.07402036406381411 - x*x) / (3.72068443960225092j*x + 8.44319781003968454 - x*x)
+		y *= (4.00561509202259545j*x + 9.30596659485887898 - x*x) / (3.90225704029924078j*x + 6.36161630953880464 - x*x)
+		y *= (5.16722705817812584j*x + 9.12661617673673262 - x*x) / (4.03296893109262491j*x + 5.13578530585681539 - x*x)
+		y *= (5.95908795446633271j*x + 9.19435612886969243 - x*x) / (4.11240942957450885j*x + 4.48640329523408675 - x*x)
+		return -y.imag * math.exp(x*x)
 
 def gamma(z):
 	try:
@@ -495,7 +528,7 @@ funcs = {
 	'asin': (1, 1, func_wrap(math.asin)),
 	'acos': (1, 1, func_wrap(math.acos)),
 	'atan': (1, 1, func_wrap(math.atan)),
-	'acot': (1, 1, func_wrap(lambda x: math.atan(1.0 / x))),
+	'acot': (1, 1, func_wrap(lambda x: math.atan2(1.0, x))),
 	'asec': (1, 1, func_wrap(lambda x: math.acos(1.0 / x))),
 	'acsc': (1, 1, func_wrap(lambda x: math.asin(1.0 / x))),
 	'sinh': (1, 1, func_wrap(math.sinh)),
@@ -558,6 +591,8 @@ funcs = {
 	'pick': (2, 2, func_wrap(lambda n, r: gamma(n + 1) / gamma(n - r + 1))),
 	'erf': (1, 1, func_wrap(erf)),
 	'erfc': (1, 1, func_wrap(erfc)),
+	'erfcx': (1, 1, func_wrap(erfcx)),
+	'erfi': (1, 1, func_wrap(erfi)),
 	'fma': (3, 3, func_wrap(fma)),
 	'agm': (2, 2, func_wrap(agm)),
 	'gcd': (2, 2, func_wrap(gcd)),
@@ -940,6 +975,57 @@ def bec_print(bindings, s):
 	except Exception as e:
 		print(e)
 
+def bec_graph(bindings, s):
+	rows = int(math.ceil(bindings['rows']['value'])) if 'rows' in bindings and bindings['rows']['value'] > 0 else 20
+	cols = int(math.ceil(bindings['cols']['value'])) if 'cols' in bindings and bindings['cols']['value'] > 0 else 80
+	graph = [[' ' for x in range(cols)] for y in range(rows)]
+	octants = [
+		' ','𜺨','𜺫','🮂','𜴀','▘','𜴁','𜴂','𜴃','𜴄','▝','𜴅','𜴆','𜴇','𜴈','▀',
+		'𜴉','𜴊','𜴋','𜴌','🯦','𜴍','𜴎','𜴏','𜴐','𜴑','𜴒','𜴓','𜴔','𜴕','𜴖','𜴗',
+		'𜴘','𜴙','𜴚','𜴛','𜴜','𜴝','𜴞','𜴟','🯧','𜴠','𜴡','𜴢','𜴣','𜴤','𜴥','𜴦',
+		'𜴧','𜴨','𜴩','𜴪','𜴫','𜴬','𜴭','𜴮','𜴯','𜴰','𜴱','𜴲','𜴳','𜴴','𜴵','🮅',
+		'𜺣','𜴶','𜴷','𜴸','𜴹','𜴺','𜴻','𜴼','𜴽','𜴾','𜴿','𜵀','𜵁','𜵂','𜵃','𜵄',
+		'▖','𜵅','𜵆','𜵇','𜵈','▌','𜵉','𜵊','𜵋','𜵌','▞','𜵍','𜵎','𜵏','𜵐','▛',
+		'𜵑','𜵒','𜵓','𜵔','𜵕','𜵖','𜵗','𜵘','𜵙','𜵚','𜵛','𜵜','𜵝','𜵞','𜵟','𜵠',
+		'𜵡','𜵢','𜵣','𜵤','𜵥','𜵦','𜵧','𜵨','𜵩','𜵪','𜵫','𜵬','𜵭','𜵮','𜵯','𜵰',
+		'𜺠','𜵱','𜵲','𜵳','𜵴','𜵵','𜵶','𜵷','𜵸','𜵹','𜵺','𜵻','𜵼','𜵽','𜵾','𜵿',
+		'𜶀','𜶁','𜶂','𜶃','𜶄','𜶅','𜶆','𜶇','𜶈','𜶉','𜶊','𜶋','𜶌','𜶍','𜶎','𜶏',
+		'▗','𜶐','𜶑','𜶒','𜶓','▚','𜶔','𜶕','𜶖','𜶗','▐','𜶘','𜶙','𜶚','𜶛','▜',
+		'𜶜','𜶝','𜶞','𜶟','𜶠','𜶡','𜶢','𜶣','𜶤','𜶥','𜶦','𜶧','𜶨','𜶩','𜶪','𜶫',
+		'▂','𜶬','𜶭','𜶮','𜶯','𜶰','𜶱','𜶲','𜶳','𜶴','𜶵','𜶶','𜶷','𜶸','𜶹','𜶺',
+		'𜶻','𜶼','𜶽','𜶾','𜶿','𜷀','𜷁','𜷂','𜷃','𜷄','𜷅','𜷆','𜷇','𜷈','𜷉','𜷊',
+		'𜷋','𜷌','𜷍','𜷎','𜷏','𜷐','𜷑','𜷒','𜷓','𜷔','𜷕','𜷖','𜷗','𜷘','𜷙','𜷚',
+		'▄','𜷛','𜷜','𜷝','𜷞','▙','𜷟','𜷠','𜷡','𜷢','▟','𜷣','▆','𜷤','𜷥','█'
+	]
+	def plot(x, y, o=octants):
+		if 0 <= x < cols * 2 and 0 <= y < rows * 4:
+			c = graph[y >> 2][x >> 1]
+			i = o.index(c) if c in o else 0
+			i |= 1 << (((y & 3) << 1) | (x & 1))
+			graph[y >> 2][x >> 1] = o[i]
+
+	l = float(bindings['l']['value']) if 'l' in bindings else -10.0
+	r = float(bindings['r']['value']) if 'r' in bindings else +10.0
+	t = float(bindings['t']['value']) if 't' in bindings else +5.0
+	b = float(bindings['b']['value']) if 'b' in bindings else -5.0
+	row0 = int(round((-t * rows * 4) / (b - t)))
+	col0 = int(round((-l * cols * 2) / (r - l)))
+	dim = ['\x1B[36m%s\x1B[0m' % o for o in octants]
+	for x in range(cols * 2):
+		plot(x, row0, dim)
+	for y in range(rows * 4):
+		plot(col0, y, dim)
+
+	stats = list(parser(s).parse())
+	for x in range(cols * 2):
+		try:
+			bindings['x'] = {'type': 'value', 'value': (l + (r - l) * x / (cols * 2 - 1)), 'radix': 10}
+			for stat in stats:
+				plot(x, int(round((bec_eval(bindings, stat)['value'] - t) * (rows * 4) / (b - t))))
+		except:
+			pass
+	print('\n'.join(''.join(row) for row in graph))
+
 def bec_repl(bindings):
 	while True:
 		sys.stdout.write('bec> ');
@@ -948,10 +1034,20 @@ def bec_repl(bindings):
 			line = sys.stdin.readline().strip()
 			if line == 'bye' or line == 'exit' or line == 'quit':
 				return
+			elif line.startswith('graph '):
+				bec_graph(bindings, line[6:])
 			elif line:
 				bec_print(bindings, line)
 		except:
 			return
+
+def bec_batch(bindings, lines):
+	for line in lines:
+		line = line.strip()
+		if line.startswith('graph '):
+			bec_graph(bindings, line[6:])
+		elif line:
+			bec_print(bindings, line)
 
 def bec_help(section):
 	if section == 'operators':
@@ -1010,6 +1106,7 @@ def bec_help(section):
 		print('')
 		print('    bec -e <expr>       evaluate expressions in argument')
 		print('    bec -f <path>       evaluate expressions in file')
+		print('    bec -g <expr>       print a graph of an expression')
 		print('    bec -i              interactive mode')
 		print('    bec -s              evaluate expressions from standard input')
 		print('    bec <expr>          evaluate expressions in all arguments')
@@ -1043,18 +1140,16 @@ def bec_main(bindings, args):
 		elif arg == '-f':
 			if i < n:
 				with open(args[i], 'r') as f:
-					for line in f:
-						line = line.strip()
-						if line:
-							bec_print(bindings, line)
+					bec_batch(bindings, f)
+				i += 1
+		elif arg == '-g':
+			if i < n:
+				bec_graph(bindings, args[i])
 				i += 1
 		elif arg == '-i':
 			bec_repl(bindings)
 		elif arg == '-s':
-			for line in sys.stdin:
-				line = line.strip()
-				if line:
-					bec_print(bindings, line)
+			bec_batch(bindings, sys.stdin)
 		else:
 			line = ' '.join(args[i-1:]).strip()
 			bec_print(bindings, line)
