@@ -1016,14 +1016,42 @@ def bec_graph(bindings, s):
 	for y in range(rows * 4):
 		plot(col0, y, dim)
 
-	stats = list(parser(s).parse())
-	for x in range(cols * 2):
+	def eval(stat, x):
+		bindings['x'] = {'type': 'value', 'value': x, 'radix': 10}
 		try:
-			bindings['x'] = {'type': 'value', 'value': (l + (r - l) * x / (cols * 2 - 1)), 'radix': 10}
-			for stat in stats:
-				plot(x, int(round((bec_eval(bindings, stat)['value'] - t) * (rows * 4) / (b - t))))
+			return bec_eval(bindings, stat)['value']
 		except:
-			pass
+			return None
+
+	def runs(a):
+		i = 0
+		while i < len(a):
+			if a[i] is None:
+				i += 1
+			else:
+				j = i + 1
+				while j < len(a) and a[j] is not None and (
+				(a[i] <= a[i+1] and a[j-1] <= a[j]) or
+				(a[i] >= a[i+1] and a[j-1] >= a[j])):
+					j += 1
+				if (j - i) < 3:
+					yield a[i:i+1]
+					i += 1
+				else:
+					yield a[i:j]
+					i = j - 1
+
+	res = int(math.ceil(bindings['res']['value'])) if 'res' in bindings and bindings['res']['value'] > 1 else 8
+	stats = list(parser(s).parse())
+	for px in range(cols * 2):
+		xa = [(l + (r - l) * (px + dx / float(res)) / (cols * 2)) for dx in range(0, res+1)]
+		for stat in stats:
+			for ya in runs(list(eval(stat, x) for x in xa)):
+				py0 = int(round((ya[-0] - t) * (rows * 4) / (b - t)))
+				py1 = int(round((ya[-1] - t) * (rows * 4) / (b - t)))
+				for py in range(max(-1,min(py0,py1)), min(rows*4,max(py0,py1))+1):
+					plot(px, py)
+
 	print('\n'.join(''.join(row) for row in graph))
 
 def bec_repl(bindings):
