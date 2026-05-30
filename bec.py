@@ -173,6 +173,21 @@ def signum(x):
 	else:
 		return float('nan')
 
+def cbrt(x):
+	try:
+		return math.cbrt(x)
+	except:
+		if x < 0:
+			return -cbrt(-x)
+		else:
+			return math.pow(x, 1.0/3.0)
+
+def qtrt(x):
+	return math.sqrt(math.sqrt(x))
+
+def twrt(x):
+	return math.sqrt(math.sqrt(cbrt(x)))
+
 def rsr(*args):
 	for a in args:
 		if a == 0.0:
@@ -385,6 +400,25 @@ def erfi(x):
 		y *= (5.95908795446633271j*x + 9.19435612886969243 - x*x) / (4.11240942957450885j*x + 4.48640329523408675 - x*x)
 		return -y.imag * math.exp(x*x)
 
+def __gamma_tzx(z):
+	g = 7
+	p = [
+		0.99999999999980993227684700473478,
+		676.520368121885098567009190444019,
+		-1259.13921672240287047156078755283,
+		771.3234287776530788486528258894,
+		-176.61502916214059906584551354,
+		12.507343278686904814458936853,
+		-0.13857109526572011689554707,
+		9.984369578019570859563e-6,
+		1.50563273514931155834e-7
+	]
+	z -= 1.0
+	x = p[0]
+	for i in range(1, len(p)):
+		x += p[i] / (z + i)
+	return z + g + 0.5, z + 0.5, x
+
 def gamma(z):
 	try:
 		return math.gamma(z)
@@ -398,30 +432,24 @@ def gamma(z):
 		elif z < 0.5:
 			return math.pi / (math.sin(math.pi * z) * gamma(1.0 - z))
 		else:
-			G = 7
-			P = [
-				0.99999999999980993,
-				676.5203681218851,
-				-1259.1392167224028,
-				771.32342877765313,
-				-176.61502916214059,
-				12.507343278686905,
-				-0.13857109526572012,
-				9.9843695780195716e-6,
-				1.5056327351493116e-7
-			]
-			z -= 1.0
-			x = P[0]
-			for i in range(1, G + 2):
-				x += P[i] / (z + i)
-			t = z + G + 0.5
-			return math.sqrt(math.pi * 2) * math.pow(t, z + 0.5) * math.exp(-t) * x
+			t, z, x = __gamma_tzx(z)
+			return math.sqrt(math.pi * 2) * math.pow(t, z) * math.exp(-t) * x
 
 def lgamma(z):
 	try:
 		return math.lgamma(z)
 	except:
-		return math.log(gamma(z))
+		if z <= 0 and math.ceil(z) == z:
+			raise ValueError('math domain error')
+		elif z == 1 or z == 2:
+			return 0.0
+		elif math.isinf(z):
+			return z
+		elif z < 0.5:
+			return math.log(abs(math.pi / math.sin(math.pi * z))) - lgamma(1.0 - z)
+		else:
+			t, z, x = __gamma_tzx(z)
+			return math.log(math.sqrt(math.pi * 2)) + z * math.log(t) - t + math.log(x)
 
 
 
@@ -465,9 +493,9 @@ funcs = {
 	'sign': (1, 1, func_wrap(signum)),
 	'signum': (1, 1, func_wrap(signum)),
 	'sqrt': (1, 1, func_wrap(math.sqrt)),
-	'cbrt': (1, 1, func_wrap(lambda x: math.pow(x, 1.0/3.0))),
-	'qtrt': (1, 1, func_wrap(lambda x: math.pow(x, 1.0/4.0))),
-	'twrt': (1, 1, func_wrap(lambda x: math.pow(x, 1.0/12.0))),
+	'cbrt': (1, 1, func_wrap(cbrt)),
+	'qtrt': (1, 1, func_wrap(qtrt)),
+	'twrt': (1, 1, func_wrap(twrt)),
 	'toDegrees': (1, 1, func_wrap(math.degrees)),
 	'toRadians': (1, 1, func_wrap(math.radians)),
 	'todegrees': (1, 1, func_wrap(math.degrees)),
@@ -586,9 +614,21 @@ funcs = {
 	'nCr': (2, 2, func_wrap(lambda n, r: gamma(n + 1) / (gamma(r + 1) * gamma(n - r + 1)))),
 	'ncr': (2, 2, func_wrap(lambda n, r: gamma(n + 1) / (gamma(r + 1) * gamma(n - r + 1)))),
 	'choose': (2, 2, func_wrap(lambda n, r: gamma(n + 1) / (gamma(r + 1) * gamma(n - r + 1)))),
+	'lnCr': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(r + 1) - lgamma(n - r + 1))),
+	'lncr': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(r + 1) - lgamma(n - r + 1))),
+	'lchoose': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(r + 1) - lgamma(n - r + 1))),
+	'lnnCr': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(r + 1) - lgamma(n - r + 1))),
+	'lnncr': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(r + 1) - lgamma(n - r + 1))),
+	'lnchoose': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(r + 1) - lgamma(n - r + 1))),
 	'nPr': (2, 2, func_wrap(lambda n, r: gamma(n + 1) / gamma(n - r + 1))),
 	'npr': (2, 2, func_wrap(lambda n, r: gamma(n + 1) / gamma(n - r + 1))),
 	'pick': (2, 2, func_wrap(lambda n, r: gamma(n + 1) / gamma(n - r + 1))),
+	'lnPr': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(n - r + 1))),
+	'lnpr': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(n - r + 1))),
+	'lpick': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(n - r + 1))),
+	'lnnPr': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(n - r + 1))),
+	'lnnpr': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(n - r + 1))),
+	'lnpick': (2, 2, func_wrap(lambda n, r: lgamma(n + 1) - lgamma(n - r + 1))),
 	'erf': (1, 1, func_wrap(erf)),
 	'erfc': (1, 1, func_wrap(erfc)),
 	'erfcx': (1, 1, func_wrap(erfcx)),
